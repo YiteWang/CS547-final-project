@@ -68,12 +68,12 @@ class ResnetGenerator(nn.Module):
     def forward(self, input):
         return self.Generator(input)
 
-def create_Generator(input_channel, output_channel, num_f, NN_name, norm='batch', dropout_on=False, device)
+def create_Generator(input_channel, output_channel, num_f, NN_name, norm='batch', dropout_on=False, device='cpu')
     if norm_type =='batch':
         norm_layer = nn.BatchNorm2d
 
     if NN_name == 'resnet9':
-        Generator = ResnetGenerator(input_channel, output_channel, num_f, norm_layer, dropout_on, num_block=9)
+        Generator = ResnetGenerator(input_channel, output_channel, num_f, norm_layer, dropout_on, num_block=9).to(device)
     elif NN_name == 'resnet6':
-        Generator = ResnetGenerator(input_channel, output_channel, num_f, norm_layer, dropout_on, num_block=6)
+        Generator = ResnetGenerator(input_channel, output_channel, num_f, norm_layer, dropout_on, num_block=6).to(device)
     return Generator
