@@ -25,8 +25,11 @@ class cycleGAN(object):
         self.Dx = create_Discriminator(input_channel=3, num_f=args.num_f, norm='batch', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=False, device='cuda')
         self.Dy = create_Discriminator(input_channel=3, num_f=args.num_f, norm='batch', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=False, device='cuda')
         
-        self.MSE_l = nn.MSELoss()
-        self.L1_l = nn.L1Loss()
+        if args.GAN_name == 'vanilla':
+            self.GAN_losscriterion = nn.BCEWithLogitsLoss()
+        else: # default set least square/LSGAN
+            self.GAN_losscriterion = nn.MSELoss()
+        self.cycle_losscriterion = nn.L1Loss()
 
         self.g_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
         self.d_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
@@ -96,12 +99,12 @@ class cycleGAN(object):
                 dis_y_fake_x = self.Dx(y_fake_x)
                 label_true = torch.ones(x_fake_y.size())
                 label_false = torch.zeros(x_fake_y.size())
-                x_GAN_loss = self.MSE_l(dis_y_fake_x, label_true) # if Dx can distinguish fake images
-                y_GAN_loss = self.MSE_l(dis_x_fake_y, label_true) # if Dy can distinguish fake images
+                x_GAN_loss = self.GAN_losscriterion(dis_y_fake_x, label_true) # if Dx can distinguish fake images
+                y_GAN_loss = self.GAN_losscriterion(dis_x_fake_y, label_true) # if Dy can distinguish fake images
 
                 # Cycle loss
-                x_cycle_loss = self.L1_l(x_real, x_y_x) * args.Lamda
-                y_cycle_loss = self.L1_l(y_real, y_x_y) * args.Lamda
+                x_cycle_loss = self.cycle_losscriterion(x_real, x_y_x) * args.Lamda
+                y_cycle_loss = self.cycle_losscriterion(y_real, y_x_y) * args.Lamda
 
                 generator_loss = x_GAN_loss + y_GAN_loss + x_cycle_loss + y_cycle_loss
 
@@ -109,4 +112,4 @@ class cycleGAN(object):
                 self.g_opt.step()
 
                 ## The update discriminator
-                
+
