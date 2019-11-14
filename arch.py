@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import init
 
 def PatchDiscriminator(nn.Module):
-    def __init__(self, input_channel, num_f=64, n_patch_layer=3, norm_layer=nn.BatchNorm2d, dropout_on=False, bias_on=False):
+    def __init__(self, input_channel, num_f=64, n_patch_layer=3, norm_layer=nn.InstanceNorm2d, dropout_on=False, bias_on=False):
         super(PatchDiscriminator, self).__init__()
         kernel_size = 4
         padding_size = 1
@@ -31,9 +31,11 @@ def PatchDiscriminator(nn.Module):
     def forward(self, input):
         return self.dis_arch(input)
 
-def create_Discriminator(input_channel, num_f, norm='batch', n_patch_layer=3, dropout_on=False, bias_on=False, device='cpu')
+def create_Discriminator(input_channel, num_f, norm='instance', n_patch_layer=3, dropout_on=False, bias_on=False, device='cpu')
     if norm_type =='batch':
         norm_layer = nn.BatchNorm2d
+    elif norm_type =='instance':
+        norm_layer = nn.InstanceNorm2d
 
     Discriminator = PatchDiscriminator(input_channel, num_f, n_patch_layer, norm_layer, dropout_on, bias_on=False).to(device)
     return Discriminator

@@ -101,8 +101,8 @@ class cycleGAN(object):
                 # GAN loss of x
                 dis_x_fake_y = self.Dy(x_fake_y)
                 dis_y_fake_x = self.Dx(y_fake_x)
-                label_true = torch.ones(x_fake_y.size())
-                label_fake = torch.zeros(x_fake_y.size())
+                label_true = torch.ones(dis_x_fake_y.size())
+                label_fake = torch.zeros(dis_x_fake_y.size())
                 x_GAN_loss = self.GAN_losscriterion(dis_y_fake_x, label_true) # if Dx can distinguish fake images
                 y_GAN_loss = self.GAN_losscriterion(dis_x_fake_y, label_true) # if Dy can distinguish fake images
 
