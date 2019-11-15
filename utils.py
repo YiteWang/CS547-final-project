@@ -4,11 +4,12 @@ from torch import nn
 from torch.optim import lr_scheduler
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
+import numpy as np
 
 def require_grad(nets, requires_grad=False):
     for net in nets:
         for params in net.parameters():
-            param.requires_grad = requires_grad
+            params.requires_grad = requires_grad
 
 class Sample_from_history(object):
     def __init__(self, history_size=50):
@@ -21,23 +22,24 @@ class Sample_from_history(object):
             return images
         output_imgs = []
         for image in images:
+            # create a first dimension so that we will use torch.cat later
+            image_mod = torch.unsqueeze(image,0)
             if self.current_size < self.history_size:
-                self.imgs.append(image)
+                self.imgs.append(image_mod)
                 self.current_size += 1
-                output_imgs.append(image)
+                output_imgs.append(image_mod)
             else:
                 if np.random.uniform(0,1)>0.5:
                     idx = np.random.randint(0, self.history_size - 1)
                     temp = self.imgs[idx].clone()
-                    self.imgs[idx] = image
+                    self.imgs[idx] = image_mod
                     output_imgs.append(temp)
                 else:
-                    output_imgs.append(image)
+                    output_imgs.append(image_mod)
         output_imgs = torch.cat(output_imgs, 0)
         return output_imgs
 
-class linearLR(object):
-     """docstring for linearLR"""
+class linearLR():
     def __init__(self, total_epoch=200, decay_epoch=100):
         self.total_epoch = total_epoch
         self.decay_epoch = decay_epoch

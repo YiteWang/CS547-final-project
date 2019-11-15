@@ -8,7 +8,7 @@ from torch.optim import lr_scheduler
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import utils
-
+from torch.autograd import Variable
 
 
 class cycleGAN(object):
@@ -39,7 +39,7 @@ class cycleGAN(object):
         self.g_scheduler = torch.optim.lr_scheduler.LambdaLR(self.g_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
         self.d_scheduler = torch.optim.lr_scheduler.LambdaLR(self.d_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
 
-        if args.load_checkpoint = True:
+        if args.load_checkpoint == True:
             try:
                 temp = torch.load('%s/latest.state' % (args.checkpoint_dir))
                 self.start_epoch = temp['epoch']
@@ -67,8 +67,8 @@ class cycleGAN(object):
              transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
         dataset_dirs = {}
-        dataset_dirs['trainX'] = os.path.join(args.dataset_dirs, 'trainA')
-        dataset_dirs['trainY'] = os.path.join(args.dataset_dirs, 'trainB')
+        dataset_dirs['trainX'] = os.path.join(args.dataset_dir, 'trainA')
+        dataset_dirs['trainY'] = os.path.join(args.dataset_dir, 'trainB')
         x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainX'], transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
         y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainY'], transform=transform), 
@@ -81,8 +81,6 @@ class cycleGAN(object):
         y_fake_x_history = utils.Sample_from_history()
 
         for epoch in range(self.start_epoch, args.epochs):
-
-            LR = self.g_opt.parameter_groups[0]['lr']
 
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
                 ### First update generator
@@ -103,8 +101,8 @@ class cycleGAN(object):
                 # GAN loss of x
                 dis_x_fake_y = self.Dy(x_fake_y)
                 dis_y_fake_x = self.Dx(y_fake_x)
-                label_true = torch.ones(dis_x_fake_y.size())
-                label_fake = torch.zeros(dis_x_fake_y.size())
+                label_true = torch.ones(dis_x_fake_y.size()).to(device)
+                label_fake = torch.zeros(dis_x_fake_y.size()).to(device)
                 x_GAN_loss = self.GAN_losscriterion(dis_y_fake_x, label_true) # if Dx can distinguish fake images
                 y_GAN_loss = self.GAN_losscriterion(dis_x_fake_y, label_true) # if Dy can distinguish fake images
 
@@ -122,8 +120,8 @@ class cycleGAN(object):
                 utils.require_grad([self.Dx, self.Dy], True)
                 self.d_opt.zero_grad()
 
-                x_fake = torch.Tensor(y_fake_x_history(y_fake_x.cpu().data.numpy())).to(device)
-                y_fake = torch.Tensor(x_fake_y_history(x_fake_y.cpu().data.numpy())).to(device)
+                x_fake = Variable(y_fake_x_history(y_fake_x)).to(device)
+                y_fake = Variable(x_fake_y_history(x_fake_y)).to(device)
 
                 dis_x_real = self.Dx(x_real)
                 dis_y_real = self.Dy(y_real)
@@ -137,7 +135,8 @@ class cycleGAN(object):
                 x_dis_loss.backward()
                 y_dis_loss.backward()
                 self.d_opt.step()
-                print("End of Epoch %3d, Batch: %5d/%5d | Loss of Gen:%.2e | Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
+                if (batch_idx+1)%50 == 0 or (batch_idx + 1) == min(len(x_loader), len(y_loader)):
+                    print("End of Epoch %3d, Batch: %5d/%5d | Loss of Gen:%.2e | Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
 
             # save temp state
             save_param_dict = {'epoch': epoch+1,
