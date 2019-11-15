@@ -4,6 +4,7 @@ from utils import *
 import arch
 import CycleGAN
 import torch
+import test
 
 def retrieve_args():
     parser = ArgumentParser(description='CS547 Final Project: cycleGAN')
@@ -17,7 +18,7 @@ def retrieve_args():
     parser.add_argument('--load_W', type=int, default=286)
     parser.add_argument('--crop_H', type=int, default=256)
     parser.add_argument('--crop_W', type=int, default=256)
-    parser.add_argument('--training', type=bool, default=True)
+    parser.add_argument('--training', type=bool, default=False)
     parser.add_argument('--testing', type=bool, default=False)
     parser.add_argument('--dataset_dir', type=str, default='./datasets/apple2orange')
     parser.add_argument('--load_checkpoint', type=bool, default=False)
@@ -28,6 +29,7 @@ def retrieve_args():
     parser.add_argument('--n_patch_layer', type=int, default=3, help='number of patch layer')
     parser.add_argument('--GAN_name', type=str, default='lsgan')
     parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument('--result_dir', type=str, default='./output_img/apple2orange')
     args = parser.parse_args()
     return args
 
@@ -42,7 +44,8 @@ def main():
         print("Start to train")
         model = CycleGAN.cycleGAN(args)
         model.start_train(args)
-    # if args.testing:
+    if args.testing:
+        test.start_test(args)
 
 
 if __name__ == '__main__':
