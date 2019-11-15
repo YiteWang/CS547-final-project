@@ -72,7 +72,7 @@ class Resnetblock(nn.Module):
         return x + self.resblock(x)
 
 class ResnetGenerator(nn.Module):
-    def __init__(self, input_channel, output_channel, num_f=64, norm_layer=nn.BatchNorm2d, dropout_on=False, bias_on=False, num_block=6, pad_method='reflect'):
+    def __init__(self, input_channel, output_channel, num_f=64, norm_layer=nn.BatchNorm2d, dropout_on=False, bias_on=True, num_block=6, pad_method='reflect'):
         super(ResnetGenerator, self).__init__
         Generator = [nn.ReflectionPad2d(3),
                      nn.Conv2d(input_channel, num_f, kernel_size=7, padding=0, bias=bias_on),
@@ -107,8 +107,10 @@ class ResnetGenerator(nn.Module):
         return self.Generator(input)
 
 def create_Generator(input_channel, output_channel, num_f, NN_name, norm='batch', dropout_on=False, device='cpu')
-    if norm_type =='batch':
+    if norm_type == 'batch':
         norm_layer = nn.BatchNorm2d
+    elif norm_type == 'instance':
+        norm_layer = nn.InstanceNorm2d
 
     if NN_name == 'resnet9':
         Generator = ResnetGenerator(input_channel, output_channel, num_f, norm_layer, dropout_on, num_block=9).to(device)

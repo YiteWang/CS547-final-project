@@ -9,6 +9,8 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import utils
 
+
+
 class cycleGAN(object):
     """docstring for cycleGAN"""
     def __init__(self, args):
@@ -18,12 +20,12 @@ class cycleGAN(object):
         self.args = args
 
         # Defining generators
-        self.Gxy = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.NN_name, norm='batch', dropout_on=False, device='cuda')
-        self.Gyx = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.NN_name, norm='batch', dropout_on=False, device='cuda')
+        self.Gxy = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', dropout_on=False, device='cuda')
+        self.Gyx = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', dropout_on=False, device='cuda')
         
         # Defining discriminators
-        self.Dx = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='batch', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=False, device='cuda')
-        self.Dy = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='batch', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=False, device='cuda')
+        self.Dx = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=True, device='cuda')
+        self.Dy = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=True, device='cuda')
         
         if args.GAN_name == 'vanilla':
             self.GAN_losscriterion = nn.BCEWithLogitsLoss()
@@ -32,10 +34,10 @@ class cycleGAN(object):
         self.cycle_losscriterion = nn.L1Loss()
 
         self.g_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
-        self.d_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
+        self.d_opt = torch.optim.Adam(itertools.chain(self.Dx.parameters(),self.Dy.parameters()), lr=args.lr, betas=(0.5, 0.999))
 
-        self.g_scheduler = torch.optim.lr_scheduler.LambdaLR(self.g_opt, lr_lambda=utils.LambdaLR(args.epochs, 0, args.decay_epoch).step)
-        self.d_scheduler = torch.optim.lr_scheduler.LambdaLR(self.d_opt, lr_lambda=utils.LambdaLR(args.epochs, 0, args.decay_epoch).step)
+        self.g_scheduler = torch.optim.lr_scheduler.LambdaLR(self.g_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
+        self.d_scheduler = torch.optim.lr_scheduler.LambdaLR(self.d_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
 
         if args.load_checkpoint = True:
             try:
@@ -84,7 +86,7 @@ class cycleGAN(object):
 
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
                 ### First update generator
-                step =  i + 1 + min(len(x_loader), len(y_loader)) * epoch
+                # step =  batch_idx + 1 + min(len(x_loader), len(y_loader)) * epoch
 
                 utils.require_grad([self.Dx, self.Dy], False)
                 self.g_opt.zero_grad()
@@ -135,7 +137,7 @@ class cycleGAN(object):
                 x_dis_loss.backward()
                 y_dis_loss.backward()
                 self.d_opt.step()
-                print("Epoch: (%3d) Batch: (%5d/%5d) | Gen Loss:%.2e | Dis Loss:%.2e" % (epoch, i + 1, min(len(a_loader), len(b_loader)), generator_loss, x_dis_loss+y_dis_loss))
+                print("End of Epoch %3d, Batch: %5d/%5d | Loss of Gen:%.2e | Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
 
             # save temp state
             save_param_dict = {'epoch': epoch+1,

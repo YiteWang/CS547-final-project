@@ -35,3 +35,13 @@ class Sample_from_history(object):
                     output_imgs.append(image)
         output_imgs = torch.cat(output_imgs, 0)
         return output_imgs
+
+class linearLR(object):
+     """docstring for linearLR"""
+    def __init__(self, total_epoch=200, decay_epoch=100):
+        self.total_epoch = total_epoch
+        self.decay_epoch = decay_epoch
+
+    def get_lr(self, epoch):
+        lr = 1-max(0, epoch-self.decay_epoch)/float(self.total_epoch-self.decay_epoch)
+        return lr
