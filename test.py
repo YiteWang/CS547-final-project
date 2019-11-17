@@ -53,5 +53,5 @@ def start_test(args):
     if not os.path.isdir(args.result_dir):
         os.makedirs(args.result_dir)
 
-    torchvision.utils.save_image(pic, args.result_dir+'/sample.jpg', nrow=3)
+    torchvision.utils.save_image(pic, args.result_dir+'/sample.jpg', nrow=args.batch_size)
 
