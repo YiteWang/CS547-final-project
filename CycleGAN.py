@@ -147,6 +147,9 @@ class cycleGAN(object):
                                'd_opt': self.d_opt.state_dict(),
                                'g_opt': self.g_opt.state_dict()}
             torch.save(save_param_dict, '%s/latest.state' % (args.checkpoint_dir))
+
+            if (epoch+1)%50 == 0:
+                torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
             
             # learning rate scheduler
             self.g_scheduler.step()

@@ -31,7 +31,7 @@ def start_test(args):
     
     try:
         save_model = torch.load('%s/latest.state' % (args.checkpoint_dir))
-        Gxy.load_state_dict(save_model['Gyx'])
+        Gyx.load_state_dict(save_model['Gyx'])
         Gxy.load_state_dict(save_model['Gxy'])
     except:
         print('Checkpoint not found.')
