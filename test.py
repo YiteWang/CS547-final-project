@@ -18,12 +18,11 @@ def start_test(args):
          transforms.ToTensor(),
          transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
-    dataset_dirs = {}
-    dataset_dirs['testX'] = os.path.join(args.dataset_dir, 'testA')
-    dataset_dirs['testY'] = os.path.join(args.dataset_dir, 'testB')
-    x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['testX'], transform=transform), 
+    dataset_dirs_X = os.path.join(args.dataset_dir, 'testA')
+    dataset_dirs_Y = os.path.join(args.dataset_dir, 'testB')
+    x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_X, transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
-    y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['testY'], transform=transform), 
+    y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_Y, transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
 
     Gxy = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', dropout_on=False, device='cuda')
@@ -53,5 +52,5 @@ def start_test(args):
     if not os.path.isdir(args.result_dir):
         os.makedirs(args.result_dir)
 
-    torchvision.utils.save_image(pic, args.result_dir+'/sample.jpg', nrow=args.batch_size)
+    torchvision.utils.save_image(pic, args.result_dir+'/test_images.jpg', nrow=args.batch_size)
 
