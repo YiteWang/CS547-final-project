@@ -66,12 +66,11 @@ class cycleGAN(object):
              transforms.ToTensor(),
              transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
-        dataset_dirs = {}
-        dataset_dirs['trainX'] = os.path.join(args.dataset_dir, 'trainA')
-        dataset_dirs['trainY'] = os.path.join(args.dataset_dir, 'trainB')
-        x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainX'], transform=transform), 
+        dataset_dirs_X = os.path.join(args.dataset_dir, 'trainA')
+        dataset_dirs_Y = os.path.join(args.dataset_dir, 'trainB')
+        x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_X, transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
-        y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainY'], transform=transform), 
+        y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_Y, transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
         device = args.device
 
@@ -136,7 +135,7 @@ class cycleGAN(object):
                 y_dis_loss.backward()
                 self.d_opt.step()
                 if (batch_idx+1)%50 == 0 or (batch_idx + 1) == min(len(x_loader), len(y_loader)):
-                    print("End of Epoch %3d, Batch: %5d/%5d | Loss of Gen:%.2e | Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
+                    print("End of epoch %d, Batch: %d/%d , Loss of Gen:%.2e , Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
 
             # save temp state
             save_param_dict = {'epoch': epoch+1,
