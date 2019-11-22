@@ -83,8 +83,6 @@ class cycleGAN(object):
 
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
                 ### First update generator
-                # step =  batch_idx + 1 + min(len(x_loader), len(y_loader)) * epoch
-
                 utils.require_grad([self.Dx, self.Dy], False)
                 self.g_opt.zero_grad()
                 x_real = torch.Tensor(x_real[0]).to(device) # x_real[1] is the class, default:0
