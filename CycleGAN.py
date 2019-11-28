@@ -34,6 +34,9 @@ class cycleGAN(object):
             self.GAN_losscriterion = nn.MSELoss()
         self.cycle_losscriterion = nn.L1Loss()
 
+        if args.use_id_loss:
+            self.id_loss = nn.L1Loss()
+
         self.g_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
         self.d_opt = torch.optim.Adam(itertools.chain(self.Dx.parameters(),self.Dy.parameters()), lr=args.lr, betas=(0.5, 0.999))
 
@@ -102,7 +105,7 @@ class cycleGAN(object):
                 x_y_x = self.Gyx(x_fake_y) # Reconstruct X
                 y_x_y = self.Gxy(y_fake_x) # Reconstruct Y
 
-                # GAN loss of x
+                # GAN loss of x: according to section 3.1, section 4 training details part.
                 dis_x_fake_y = self.Dy(x_fake_y)
                 dis_y_fake_x = self.Dx(y_fake_x)
                 label_true = torch.ones(dis_x_fake_y.size()).to(device)
@@ -110,11 +113,22 @@ class cycleGAN(object):
                 x_GAN_loss = self.GAN_losscriterion(dis_y_fake_x, label_true) # if Dx can distinguish fake images
                 y_GAN_loss = self.GAN_losscriterion(dis_x_fake_y, label_true) # if Dy can distinguish fake images
 
-                # Cycle loss
+                # Identity loss: According to section 5.2: Photo generation from painting part
+
+                if args.use_id_loss:
+                    y_identity = self.Gxy(y_real)
+                    x_identity = self.Gyx(x_real)
+                    y_id_loss = self.id_loss(y_identity, y_real) * lamdba_id_loss
+                    x_id_loss = self.id_loss(x_identity, x_real) * lamdba_id_loss
+
+                # Cycle loss According to section 3.2 of original paper
                 x_cycle_loss = self.cycle_losscriterion(x_real, x_y_x) * args.lamda
                 y_cycle_loss = self.cycle_losscriterion(y_real, y_x_y) * args.lamda
 
                 generator_loss = x_GAN_loss + y_GAN_loss + x_cycle_loss + y_cycle_loss
+
+                if args.use_id_loss:
+                    generator_loss += y_id_loss + x_id_loss
 
                 generator_loss.backward()
                 self.g_opt.step()
