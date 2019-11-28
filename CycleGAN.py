@@ -70,12 +70,9 @@ class cycleGAN(object):
              transforms.ToTensor(),
              transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
-        dataset_dirs = {}
-        dataset_dirs['trainX'] = os.path.join(args.dataset_dir, 'trainA')
-        dataset_dirs['trainY'] = os.path.join(args.dataset_dir, 'trainB')
-        x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainX'], transform=transform), 
+        x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(os.path.join(args.dataset_dir, 'trainA'), transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
-        y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainY'], transform=transform), 
+        y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(os.path.join(args.dataset_dir, 'trainB'), transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
         device = args.device
 
