@@ -8,6 +8,7 @@ from torch.optim import lr_scheduler
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import utils
+import numpy as np
 from torch.autograd import Variable
 
 
@@ -66,11 +67,12 @@ class cycleGAN(object):
              transforms.ToTensor(),
              transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
-        dataset_dirs_X = os.path.join(args.dataset_dir, 'trainA')
-        dataset_dirs_Y = os.path.join(args.dataset_dir, 'trainB')
-        x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_X, transform=transform), 
+        dataset_dirs = {}
+        dataset_dirs['trainX'] = os.path.join(args.dataset_dir, 'trainA')
+        dataset_dirs['trainY'] = os.path.join(args.dataset_dir, 'trainB')
+        x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainX'], transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
-        y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_Y, transform=transform), 
+        y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs['trainY'], transform=transform), 
                                                         batch_size=args.batch_size, shuffle=True, num_workers=4)
         device = args.device
 
@@ -78,11 +80,16 @@ class cycleGAN(object):
         x_fake_y_history = utils.Sample_from_history() 
         # a class that contains history(default size = 50) of using Y to fake X
         y_fake_x_history = utils.Sample_from_history()
-
+        gen_loss_record_x = []
+        gen_loss_record_y = []
+        dis_loss_record_x = []
+        dis_loss_record_y = []
         for epoch in range(self.start_epoch, args.epochs):
 
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
                 ### First update generator
+                # step =  batch_idx + 1 + min(len(x_loader), len(y_loader)) * epoch
+
                 utils.require_grad([self.Dx, self.Dy], False)
                 self.g_opt.zero_grad()
                 x_real = torch.Tensor(x_real[0]).to(device) # x_real[1] is the class, default:0
@@ -131,9 +138,20 @@ class cycleGAN(object):
 
                 x_dis_loss.backward()
                 y_dis_loss.backward()
+                
+                gen_loss_record_x.append((x_GAN_loss+x_cycle_loss).item())
+                gen_loss_record_y.append((y_GAN_loss+y_cycle_loss).item())
+                dis_loss_record_x.append(x_dis_loss.item())
+                dis_loss_record_y.append(y_dis_loss.item())
+                
                 self.d_opt.step()
-                if (batch_idx+1)%50 == 0 or (batch_idx + 1) == min(len(x_loader), len(y_loader)):
-                    print("End of epoch %d, Batch: %d/%d , Loss of Gen:%.2e , Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
+                if (batch_idx+1)%100 == 0 or (batch_idx + 1) == min(len(x_loader), len(y_loader)):
+                    print("End of Epoch %3d, Batch: %5d/%5d | Loss of Gen:%.2e | Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
+                    
+            np.save('%s/%s_gen_x.npy' % (args.checkpoint_dir, args.data_name), gen_loss_record_x)
+            np.save('%s/%s_gen_y.npy' % (args.checkpoint_dir, args.data_name), gen_loss_record_y)
+            np.save('%s/%s_dis_x.npy' % (args.checkpoint_dir, args.data_name), dis_loss_record_x)
+            np.save('%s/%s_dis_y.npy' % (args.checkpoint_dir, args.data_name), dis_loss_record_y)
 
             # save temp state
             save_param_dict = {'epoch': epoch+1,
@@ -144,10 +162,11 @@ class cycleGAN(object):
                                'd_opt': self.d_opt.state_dict(),
                                'g_opt': self.g_opt.state_dict()}
             torch.save(save_param_dict, '%s/latest.state' % (args.checkpoint_dir))
-
+            
             if (epoch+1)%50 == 0:
                 torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
             
+
             # learning rate scheduler
             self.g_scheduler.step()
             self.d_scheduler.step()

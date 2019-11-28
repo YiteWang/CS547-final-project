@@ -20,17 +20,21 @@ def retrieve_args():
     parser.add_argument('--crop_W', type=int, default=256)
     parser.add_argument('--training', type=bool, default=False)
     parser.add_argument('--testing', type=bool, default=False)
-    parser.add_argument('--dataset_dir', type=str, default='./datasets/apple2orange')
-    parser.add_argument('--load_checkpoint', type=bool, default=False)
-    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/apple2orange')
+    parser.add_argument('--data_name', type=str, default='apple2orange')
+    parser.add_argument('--dataset_dir', type=str, default='./datasets/')
+    parser.add_argument('--load_checkpoint', type=bool, default=True)
+    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/')
     parser.add_argument('--num_c_g', type=int, default=64, help='# of channels in generator')
     parser.add_argument('--num_c_d', type=int, default=64, help='# of channels in discriminator')
     parser.add_argument('--gen_net', type=str, default='resnet9')
     parser.add_argument('--n_patch_layer', type=int, default=3, help='number of patch layer')
     parser.add_argument('--GAN_name', type=str, default='lsgan')
     parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--result_dir', type=str, default='./output_img/apple2orange')
+    parser.add_argument('--result_dir', type=str, default='./output_img/')
     args = parser.parse_args()
+    args.dataset_dir += args.data_name
+    args.checkpoint_dir += args.data_name
+    args.result_dir += args.data_name
     return args
 
 
