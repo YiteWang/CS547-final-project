@@ -160,7 +160,7 @@ class cycleGAN(object):
                 
                 self.d_opt.step()
                 if (batch_idx+1)%100 == 0 or (batch_idx + 1) == min(len(x_loader), len(y_loader)):
-                    print("End of Epoch %3d, Batch: %5d/%5d | Loss of Gen:%.2e | Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
+                    print("End of Epoch %d, Batch: %d/%d , Loss of Gen:%.2e , Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
                     
             np.save('%s/%s_gen_x.npy' % (args.checkpoint_dir, args.data_name), gen_loss_record_x)
             np.save('%s/%s_gen_y.npy' % (args.checkpoint_dir, args.data_name), gen_loss_record_y)
