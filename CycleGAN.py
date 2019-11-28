@@ -90,8 +90,7 @@ class cycleGAN(object):
         for epoch in range(self.start_epoch, args.epochs):
 
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
-                ### First update generator
-                # step =  batch_idx + 1 + min(len(x_loader), len(y_loader)) * epoch
+                # First update generator
 
                 utils.require_grad([self.Dx, self.Dy], False)
                 self.g_opt.zero_grad()
