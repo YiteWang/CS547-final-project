@@ -14,7 +14,7 @@ def retrieve_args():
     parser.add_argument('--lr', type=float, default=.0002, help='learning rate')
     parser.add_argument('--use_GPU', type=bool, default=True, help='if use GPU')
     parser.add_argument('--use_id_loss', type=bool, default=False, help='if add identity loss')
-    parser.add_argument('--lamdba_id_loss', type=float, default=5, help='lambda used for identity loss')
+    parser.add_argument('--lambda_id_loss', type=float, default=5, help='lambda used for identity loss')
     parser.add_argument('--lamda', type=int, default=10)
     parser.add_argument('--load_H', type=int, default=286)
     parser.add_argument('--load_W', type=int, default=286)
