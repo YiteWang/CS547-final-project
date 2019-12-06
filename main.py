@@ -33,6 +33,8 @@ def retrieve_args():
     parser.add_argument('--GAN_name', type=str, default='lsgan', help='type of loss function of GANloss used')
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--result_dir', type=str, default='./output_img/')
+    parser.add_argument('--no-test_in_train', dest='test_in_train', action='store_false')
+    parser.set_defaults(test_in_train=True)
     args = parser.parse_args()
     args.dataset_dir += args.data_name
     args.checkpoint_dir += args.data_name
@@ -51,7 +53,7 @@ def main():
         model = CycleGAN.cycleGAN(args)
         model.start_train(args)
     if args.testing:
-        test.start_test(args)
+        test.start_test(args, args.epochs)
 
 
 if __name__ == '__main__':

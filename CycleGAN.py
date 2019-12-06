@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 import utils
 import numpy as np
 from torch.autograd import Variable
-
+import test
 
 class cycleGAN(object):
     """docstring for cycleGAN"""
@@ -129,7 +129,7 @@ class cycleGAN(object):
                 generator_loss.backward()
                 self.g_opt.step()
 
-                ## The update discriminator
+                ## Then update discriminator
 
                 utils.require_grad([self.Dx, self.Dy], True)
                 self.d_opt.zero_grad()
@@ -175,6 +175,8 @@ class cycleGAN(object):
             
             if (epoch+1)%50 == 0:
                 torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
+                if args.test_in_train:
+                    test.start_test(args, epoch+1)
             
 
             # learning rate scheduler

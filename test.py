@@ -11,7 +11,7 @@ from utils import *
 from arch import *
 
 
-def start_test(args):
+def start_test(args, epoch):
     print('Start to test.')
     transform = transforms.Compose(
         [transforms.Resize((args.crop_H,args.crop_W)),
@@ -47,10 +47,10 @@ def start_test(args):
         x_recon = Gyx(y_fake)
         y_recon = Gxy(x_fake)
 
-    pic = (torch.cat([x_real, y_fake, x_recon, y_real, x_fake, y_recon], dim=0).data + 1) / 2.0
+    test_imge_output = (torch.cat([x_real, y_fake, x_recon, y_real, x_fake, y_recon], dim=0).data + 1) / 2.0
 
     if not os.path.isdir(args.result_dir):
         os.makedirs(args.result_dir)
 
-    torchvision.utils.save_image(pic, args.result_dir+'/test_images.jpg', nrow=args.batch_size)
+    torchvision.utils.save_image(test_imge_output, args.result_dir+'/'+str(epoch)+'.jpg', nrow=args.batch_size)
 
