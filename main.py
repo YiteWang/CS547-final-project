@@ -12,7 +12,8 @@ def retrieve_args():
     parser.add_argument('--decay_epoch', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--lr', type=float, default=.0002, help='learning rate')
-    parser.add_argument('--use_GPU', type=bool, default=True, help='if use GPU')
+    parser.add_argument('--use_CPU', dest='use_GPU', action='store_false', help='change default device from GPU to CPU')
+    parser.set_defaults(use_GPU=True)
     parser.add_argument('--use_id_loss', type=bool, default=False, help='if add identity loss')
     parser.add_argument('--lambda_id_loss', type=float, default=5, help='lambda used for identity loss')
     parser.add_argument('--lamda', type=int, default=10)
@@ -35,6 +36,7 @@ def retrieve_args():
     parser.add_argument('--result_dir', type=str, default='./output_img/')
     parser.add_argument('--no-test_in_train', dest='test_in_train', action='store_false')
     parser.set_defaults(test_in_train=True)
+    parser.add_argument('--test_batch_size', type=int, default=3)
     args = parser.parse_args()
     args.dataset_dir += args.data_name
     args.checkpoint_dir += args.data_name
