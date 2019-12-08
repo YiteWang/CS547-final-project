@@ -24,7 +24,7 @@ def retrieve_args():
     parser.add_argument('--testing', type=bool, default=False)
     parser.add_argument('--data_name', type=str, default='apple2orange', help='name of the datasets')
     parser.add_argument('--dataset_dir', type=str, default='./datasets/')
-    parser.add_argument('--load_checkpoint', type=bool, default=True)
+    parser.add_argument('--load_checkpoint', type=bool, default=False)
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/')
     parser.add_argument('--num_c_g', type=int, default=64, help='# of channels in generator')
     parser.add_argument('--num_c_d', type=int, default=64, help='# of channels in discriminator')

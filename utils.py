@@ -45,5 +45,8 @@ class linearLR():
         self.decay_epoch = decay_epoch
 
     def get_lr(self, epoch):
-        lr = 1-max(0, epoch-self.decay_epoch)/float(self.total_epoch-self.decay_epoch)
-        return lr
+        if epoch<self.decay_epoch:
+            lr_coefficient = 1
+        else:
+            lr_coefficient = (epoch-self.decay_epoch)/float(self.total_epoch-self.decay_epoch)
+        return lr_coefficient

@@ -21,12 +21,12 @@ class cycleGAN(object):
         self.args = args
 
         # Defining generators
-        self.Gxy = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', dropout_on=False, device='cuda')
-        self.Gyx = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', dropout_on=False, device='cuda')
+        self.Gxy = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', device='cuda')
+        self.Gyx = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', device='cuda')
         
         # Defining discriminators
-        self.Dx = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=True, device='cuda')
-        self.Dy = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, dropout_on=False, bias_on=True, device='cuda')
+        self.Dx = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, bias_on=True, device='cuda')
+        self.Dy = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, bias_on=True, device='cuda')
         
         if args.GAN_name == 'vanilla':
             self.GAN_losscriterion = nn.BCEWithLogitsLoss()
@@ -85,7 +85,8 @@ class cycleGAN(object):
         dis_loss_record_x = []
         dis_loss_record_y = []
         for epoch in range(self.start_epoch, args.epochs):
-
+            epoch_
+            epoch_
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
                 # First update generator
 
@@ -163,7 +164,7 @@ class cycleGAN(object):
             np.save('%s/%s_dis_x.npy' % (args.checkpoint_dir, args.data_name), dis_loss_record_x)
             np.save('%s/%s_dis_y.npy' % (args.checkpoint_dir, args.data_name), dis_loss_record_y)
 
-            # save temp state
+            # save temp state after each epoch
             save_param_dict = {'epoch': epoch+1,
                                'Dx': self.Dx.state_dict(),
                                'Dy': self.Dy.state_dict(),
@@ -173,6 +174,9 @@ class cycleGAN(object):
                                'g_opt': self.g_opt.state_dict()}
             torch.save(save_param_dict, '%s/latest.state' % (args.checkpoint_dir))
             
+            '''
+            Save all the parameters every 50 epochs
+            '''
             if (epoch+1)%50 == 0:
                 torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
             
