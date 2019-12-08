@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 import utils
 import numpy as np
 from torch.autograd import Variable
-
+import test
 
 class cycleGAN(object):
     """docstring for cycleGAN"""
@@ -115,8 +115,8 @@ class cycleGAN(object):
                 if args.use_id_loss:
                     y_identity = self.Gxy(y_real)
                     x_identity = self.Gyx(x_real)
-                    y_id_loss = self.id_loss(y_identity, y_real) * lamdba_id_loss
-                    x_id_loss = self.id_loss(x_identity, x_real) * lamdba_id_loss
+                    y_id_loss = self.id_loss(y_identity, y_real) * args.lambda_id_loss
+                    x_id_loss = self.id_loss(x_identity, x_real) * args.lambda_id_loss
 
                 # Cycle loss According to section 3.2 of original paper
                 x_cycle_loss = self.cycle_losscriterion(x_real, x_y_x) * args.lamda
@@ -130,7 +130,7 @@ class cycleGAN(object):
                 generator_loss.backward()
                 self.g_opt.step()
 
-                ## The update discriminator
+                ## Then update discriminator
 
                 utils.require_grad([self.Dx, self.Dy], True)
                 self.d_opt.zero_grad()
@@ -179,6 +179,8 @@ class cycleGAN(object):
             '''
             if (epoch+1)%50 == 0:
                 torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
+                if args.test_in_train:
+                    test.start_test(args, epoch+1)
             
 
             # learning rate scheduler
