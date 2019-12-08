@@ -80,13 +80,28 @@ class cycleGAN(object):
         x_fake_y_history = utils.Sample_from_history() 
         # a class that contains history(default size = 50) of using Y to fake X
         y_fake_x_history = utils.Sample_from_history()
-        gen_loss_record_x = []
-        gen_loss_record_y = []
-        dis_loss_record_x = []
-        dis_loss_record_y = []
+
+        # This records the GAN loss of generator Gxy: X --> Y and discriminator DY
+        GAN_loss_record_Gxy = []
+        # This records the GAN loss of generator Gyx: Y --> X and discriminator DX
+        GAN_loss_record_Gyx = []
+        # This records the Cycle loss
+        Cycle_loss_record = []
+        # This records the Identity loss
+        Gen_loss_record = []
+        Dis_loss_record = []
+
+        if args.use_id_loss:
+            Identity_loss_record = []
+
         for epoch in range(self.start_epoch, args.epochs):
-            epoch_
-            epoch_
+            epoch_GAN_Gxy = 0
+            epoch_GAN_Gyx = 0
+            epoch_Cycle_loss = 0
+            epoch_Gen_loss = 0
+            epoch_Dis_loss = 0
+            if args.use_id_loss:
+                epoch_Identity_loss = 0
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
                 # First update generator
 
@@ -96,8 +111,8 @@ class cycleGAN(object):
                 y_real = torch.Tensor(y_real[0]).to(device)
 
                 # Forward passes
-                x_fake_y = self.Gxy(x_real) # Produce Y using X
-                y_fake_x = self.Gyx(y_real) # Produce X using Y
+                x_fake_y = self.Gxy(x_real) # Produce fake Y using X
+                y_fake_x = self.Gyx(y_real) # Produce fake X using Y
 
                 x_y_x = self.Gyx(x_fake_y) # Reconstruct X
                 y_x_y = self.Gxy(y_fake_x) # Reconstruct Y
@@ -144,25 +159,42 @@ class cycleGAN(object):
                 dis_y_fake = self.Dy(y_fake)
 
                 # Discriminator loss
-                x_dis_loss = 0.5 * (self.GAN_losscriterion(dis_x_fake, label_fake) + self.GAN_losscriterion(dis_x_real, label_true))
-                y_dis_loss = 0.5 * (self.GAN_losscriterion(dis_y_fake, label_fake) + self.GAN_losscriterion(dis_y_real, label_true))
+                # This tells how good is Gyx (Compare Gyx(Y) with X)
+                x_dis_loss =  (self.GAN_losscriterion(dis_x_fake, label_fake) + self.GAN_losscriterion(dis_x_real, label_true))
+                # This tells how good is Gxy (Compare Gxy(X) with Y)
+                y_dis_loss =  (self.GAN_losscriterion(dis_y_fake, label_fake) + self.GAN_losscriterion(dis_y_real, label_true))
 
                 x_dis_loss.backward()
                 y_dis_loss.backward()
                 
-                gen_loss_record_x.append((x_GAN_loss+x_cycle_loss).item())
-                gen_loss_record_y.append((y_GAN_loss+y_cycle_loss).item())
-                dis_loss_record_x.append(x_dis_loss.item())
-                dis_loss_record_y.append(y_dis_loss.item())
-                
                 self.d_opt.step()
                 if (batch_idx+1)%100 == 0 or (batch_idx + 1) == min(len(x_loader), len(y_loader)):
                     print("End of Epoch %d, Batch: %d/%d , Loss of Gen:%.2e , Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
-                    
-            np.save('%s/%s_gen_x.npy' % (args.checkpoint_dir, args.data_name), gen_loss_record_x)
-            np.save('%s/%s_gen_y.npy' % (args.checkpoint_dir, args.data_name), gen_loss_record_y)
-            np.save('%s/%s_dis_x.npy' % (args.checkpoint_dir, args.data_name), dis_loss_record_x)
-            np.save('%s/%s_dis_y.npy' % (args.checkpoint_dir, args.data_name), dis_loss_record_y)
+                
+                epoch_GAN_Gxy += y_dis_loss.item() 
+                epoch_GAN_Gyx += x_dis_loss.item()
+                epoch_Cycle_loss += (x_cycle_loss + y_cycle_loss).item()
+                epoch_Gen_loss += generator_loss.item()
+                epoch_Dis_loss += (x_dis_loss + y_dis_loss).item()
+                if args.use_id_loss:
+                    epoch_Identity_loss += (y_id_loss + x_id_loss).item()
+
+            # Store losses after each epoch
+            GAN_loss_record_Gxy.append(epoch_GAN_Gxy)
+            GAN_loss_record_Gyx.append(epoch_GAN_Gyx)
+            Cycle_loss_record.append(epoch_Cycle_loss)
+            Gen_loss_record.append(epoch_Gen_loss)
+            Dis_loss_record.append(epoch_Dis_loss)
+
+            # Save losses after each epoch
+            np.save('%s/%s_GAN_Gxy.npy' % (args.checkpoint_dir, args.data_name), GAN_loss_record_Gxy)
+            np.save('%s/%s_GAN_Gyx.npy' % (args.checkpoint_dir, args.data_name), GAN_loss_record_Gyx)
+            np.save('%s/%s_Cycle_loss.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record)
+            np.save('%s/%s_Gen_loss.npy' % (args.checkpoint_dir, args.data_name), Gen_loss_record)
+            np.save('%s/%s_Dis_loss.npy' % (args.checkpoint_dir, args.data_name), Dis_loss_record)
+            if args.use_id_loss:
+                Identity_loss_record.append(epoch_Identity_loss)
+                np.save('%s/%s_Identity_loss.npy' % (args.checkpoint_dir, args.data_name), Identity_loss_record)
 
             # save temp state after each epoch
             save_param_dict = {'epoch': epoch+1,
