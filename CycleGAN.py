@@ -28,6 +28,14 @@ class cycleGAN(object):
         self.Dx = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, bias_on=True, device='cuda')
         self.Dy = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, bias_on=True, device='cuda')
         
+        # Defining optimizer and their schedulers
+
+        self.g_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
+        self.d_opt = torch.optim.Adam(itertools.chain(self.Dx.parameters(),self.Dy.parameters()), lr=args.lr, betas=(0.5, 0.999))
+
+        self.g_scheduler = torch.optim.lr_scheduler.LambdaLR(self.g_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
+        self.d_scheduler = torch.optim.lr_scheduler.LambdaLR(self.d_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
+
         if args.GAN_name == 'vanilla':
             self.GAN_losscriterion = nn.BCEWithLogitsLoss()
         else: # default set least square/LSGAN
@@ -36,13 +44,6 @@ class cycleGAN(object):
 
         if args.use_id_loss:
             self.id_loss = nn.L1Loss()
-
-        self.g_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
-        self.d_opt = torch.optim.Adam(itertools.chain(self.Dx.parameters(),self.Dy.parameters()), lr=args.lr, betas=(0.5, 0.999))
-
-        self.g_scheduler = torch.optim.lr_scheduler.LambdaLR(self.g_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
-        self.d_scheduler = torch.optim.lr_scheduler.LambdaLR(self.d_opt, lr_lambda=utils.linearLR(args.epochs, args.decay_epoch).get_lr)
-
         if args.load_checkpoint == True:
             try:
                 temp = torch.load('%s/latest.state' % (args.checkpoint_dir))
@@ -55,10 +56,10 @@ class cycleGAN(object):
                 self.g_opt.load_state_dict(temp['g_opt'])
                 print('Checkpoint found, loaded successfully!')
             except:
-                print('No checkpoint found, start from normal!')
-                self.start_epoch = 0
+                print('No checkpoint found, start from epoch 0!')
+                self.start_epoch_num = 0
         else:
-            self.start_epoch = 0
+            self.start_epoch_num = 0
 
     def start_train(self,args):
 
@@ -77,9 +78,9 @@ class cycleGAN(object):
         device = args.device
 
         # a class that contains history(default size = 50) of using X to fake Y
-        x_fake_y_history = utils.Sample_from_history() 
+        x_fake_y_history = utils.Sample_buffer() 
         # a class that contains history(default size = 50) of using Y to fake X
-        y_fake_x_history = utils.Sample_from_history()
+        y_fake_x_history = utils.Sample_buffer()
 
         # This records the GAN loss of generator Gxy: X --> Y and discriminator DY
         GAN_loss_record_Gxy = []
@@ -94,7 +95,7 @@ class cycleGAN(object):
         if args.use_id_loss:
             Identity_loss_record = []
 
-        for epoch in range(self.start_epoch, args.epochs):
+        for epoch in range(self.start_epoch_num, args.epochs):
             epoch_GAN_Gxy = 0
             epoch_GAN_Gyx = 0
             epoch_Cycle_loss = 0
@@ -104,8 +105,8 @@ class cycleGAN(object):
                 epoch_Identity_loss = 0
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
                 # First update generator
-
-                utils.require_grad([self.Dx, self.Dy], False)
+                # set params of discriminator not calculate gradients to save computations
+                utils.net_require_grad([self.Dx, self.Dy], False)
                 self.g_opt.zero_grad()
                 x_real = torch.Tensor(x_real[0]).to(device) # x_real[1] is the class, default:0
                 y_real = torch.Tensor(y_real[0]).to(device)
@@ -147,7 +148,7 @@ class cycleGAN(object):
 
                 ## Then update discriminator
 
-                utils.require_grad([self.Dx, self.Dy], True)
+                utils.net_require_grad([self.Dx, self.Dy], True)
                 self.d_opt.zero_grad()
 
                 x_fake = Variable(y_fake_x_history(y_fake_x)).to(device)
@@ -160,6 +161,8 @@ class cycleGAN(object):
 
                 # Discriminator loss
                 # This tells how good is Gyx (Compare Gyx(Y) with X)
+                assert dis_x_fake.shape == label_fake.shape
+                assert dis_y_fake.shape == label_fake.shape
                 x_dis_loss =  (self.GAN_losscriterion(dis_x_fake, label_fake) + self.GAN_losscriterion(dis_x_real, label_true))
                 # This tells how good is Gxy (Compare Gxy(X) with Y)
                 y_dis_loss =  (self.GAN_losscriterion(dis_y_fake, label_fake) + self.GAN_losscriterion(dis_y_real, label_true))

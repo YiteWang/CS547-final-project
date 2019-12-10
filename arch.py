@@ -51,10 +51,14 @@ class Resnetblock(nn.Module):
         super(Resnetblock, self).__init__()
         resblock_arch = []
         resblock_arch += [nn.ReflectionPad2d(1)]
-        resblock_arch += [nn.Conv2d(dim, dim, kernel_size=3, padding=0, bias=bias_on), norm_layer(dim), nn.ReLU(True)]
+        resblock_arch += [nn.Conv2d(dim, dim, kernel_size=3, 
+                            padding=0, bias=bias_on), 
+                            norm_layer(dim), 
+                            nn.ReLU(True)]
 
         resblock_arch += [nn.ReflectionPad2d(1)]
-        resblock_arch += [nn.Conv2d(dim, dim, kernel_size=3, padding=0, bias=bias_on), norm_layer(dim)]
+        resblock_arch += [nn.Conv2d(dim, dim, kernel_size=3, padding=0, bias=bias_on), 
+                            norm_layer(dim)]
 
         self.resblock = nn.Sequential(*resblock_arch)
     

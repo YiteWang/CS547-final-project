@@ -6,13 +6,13 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import numpy as np
 
-def require_grad(nets, requires_grad=False):
+def net_require_grad(nets, requires_grad=False):
     for net in nets:
         for params in net.parameters():
             params.requires_grad = requires_grad
 
-class Sample_from_history(object):
-    def __init__(self, history_size=50):
+class Sample_buffer(object):
+    def __init__(self, history_size=50): # in the paper it says 50
         self.history_size = history_size
         self.current_size = 0
         self.imgs = []
