@@ -70,7 +70,7 @@ def main():
         model = CycleGAN.cycleGAN(args)
         model.start_train(args)
     if args.testing:
-        test.start_test(args, args.epochs)
+        test.start_test(args, args.epochs, test_all=True)
 
 
 if __name__ == '__main__':

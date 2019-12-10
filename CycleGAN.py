@@ -275,7 +275,7 @@ class cycleGAN(object):
             if (epoch+1)%20 == 0:
                 torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
                 if args.test_in_train:
-                    test.start_test(args, epoch+1)
+                    test.start_test(args, epoch+1, test_all=False)
             
 
             # learning rate scheduler
