@@ -18,9 +18,12 @@ class Sample_buffer(object):
         self.imgs = []
 
     def __call__(self, images):
+        # if doesnt use sample_buffer, simply return the image
         if self.history_size == 0:
             return images
         output_imgs = []
+
+        # If use sample buffer
         for image in images:
             # create a first dimension so that we will use torch.cat later
             image_mod = torch.unsqueeze(image,0)
@@ -29,6 +32,7 @@ class Sample_buffer(object):
                 self.current_size += 1
                 output_imgs.append(image_mod)
             else:
+            # 50% use the image directly, 50% use the image from image buffer 
                 if np.random.uniform(0,1)>0.5:
                     idx = np.random.randint(0, self.history_size - 1)
                     temp = self.imgs[idx].clone()

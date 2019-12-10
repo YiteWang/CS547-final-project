@@ -110,6 +110,9 @@ class cycleGAN(object):
             if args.use_id_loss:
                 epoch_Identity_loss = 0
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
+                # deal with the fact some batches have different dimension
+                if x_real.shape() != y_real.shape():
+                    continue
                 # First update generator
                 # set params of discriminator not calculate gradients to save computations
                 utils.net_require_grad([self.Dx, self.Dy], False)
