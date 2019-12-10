@@ -270,7 +270,7 @@ class cycleGAN(object):
             torch.save(save_param_dict, '%s/latest.state' % (args.checkpoint_dir))
             
             '''
-            Save all the parameters every 50 epochs
+            Save all the parameters every 20 epochs
             '''
             if (epoch+1)%20 == 0:
                 torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
