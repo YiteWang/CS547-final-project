@@ -116,19 +116,3 @@ def create_Generator(input_channel, output_channel, num_f, NN_name, norm='batch'
     else:
         raise Expect('Unknown Generator type!')
     return Generator
-
-def init_weights(net, init_gain=0.02):
-    '''
-    Initialize network weights, this part is using the code of original CycleGAN paper 
-    '''
-
-    def init_function(layer):  # define the initialization function
-        classname = layer.__class__.__name__
-        if hasattr(layer, 'weight') and (classname.find('Conv') != -1 or classname.find('Linear') != -1):
-            init.normal_(m.weight.data, 0.0, init_gain)
-            if hasattr(layer, 'bias') and layer.bias is not None:
-                init.constant_(layer.bias.data, 0.0)
-        elif classname.find('BatchNorm2d') != -1: 
-            init.normal_(layer.weight.data, 1.0, init_gain)
-            init.constant_(layer.bias.data, 0.0)
-    net.apply(init_function) 

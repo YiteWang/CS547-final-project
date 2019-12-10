@@ -50,3 +50,15 @@ class linearLR():
         else:
             lr_coefficient = (epoch-self.decay_epoch)/float(self.total_epoch-self.decay_epoch)
         return lr_coefficient
+
+
+
+def net_initialization(layer):  # define the initialization function
+    classname = layer.__class__.__name__
+    if classname.find('Conv') != -1 :  # if it is convolutional layer
+        layer.weight.data.normal_(0.0, 0.02)
+    elif classname.find('Linear') != -1:  # if it is linear layer
+        layer.weight.data.normal_(0.0, 0.02)
+    elif classname.find('BatchNorm2d') != -1: 
+        layer.weight.data.normal_(1.0, 0.02)
+        layer.bias.data.fill_(0)

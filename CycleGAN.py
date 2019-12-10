@@ -28,6 +28,12 @@ class cycleGAN(object):
         self.Dx = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, bias_on=True, device='cuda')
         self.Dy = create_Discriminator(input_channel=3, num_f=args.num_c_d, norm='instance', n_patch_layer=args.n_patch_layer, bias_on=True, device='cuda')
         
+        # apply initialization
+        self.Gxy.apply(utils.net_initialization)
+        self.Gyx.apply(utils.net_initialization)
+        self.Dx.apply(utils.net_initialization)
+        self.Dy.apply(utils.net_initialization)
+        
         # Defining optimizer and their schedulers
 
         self.g_opt = torch.optim.Adam(itertools.chain(self.Gxy.parameters(),self.Gyx.parameters()), lr=args.lr, betas=(0.5, 0.999))
