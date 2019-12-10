@@ -15,7 +15,9 @@ import test
 class cycleGAN(object):
     """docstring for cycleGAN"""
     def __init__(self, args):
-        # super(cycleGAN, self).__init__()
+        
+        if args.use_GAN_loss == False and args.use_cycle_loss == False:
+            raise Exception('[*] At least one of GAN loss and cycle loss should be used to train network!')
 
         # Take arguments
         self.args = args
@@ -94,6 +96,8 @@ class cycleGAN(object):
         GAN_loss_record_Gyx = []
         # This records the Cycle loss
         Cycle_loss_record = []
+        Cycle_loss_record_forward = []
+        Cycle_loss_record_backward = []
         # This records the Identity loss
         Gen_loss_record = []
         Dis_loss_record = []
@@ -102,23 +106,34 @@ class cycleGAN(object):
             Identity_loss_record = []
 
         for epoch in range(self.start_epoch_num, args.epochs):
+
+            # define epoch losses
             epoch_GAN_Gxy = 0
             epoch_GAN_Gyx = 0
             epoch_Cycle_loss = 0
+            epoch_Cycle_loss_foward = 0
+            epoch_Cycle_loss_backward = 0
             epoch_Gen_loss = 0
             epoch_Dis_loss = 0
+
             if args.use_id_loss:
                 epoch_Identity_loss = 0
+
             for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
-                # deal with the fact some batches have different dimension
-                if x_real.shape() != y_real.shape():
-                    continue
-                # First update generator
-                # set params of discriminator not calculate gradients to save computations
+
+                '''
+                First update generator
+                Set params of discriminator not calculate gradients to save computations
+                '''
+
                 utils.net_require_grad([self.Dx, self.Dy], False)
                 self.g_opt.zero_grad()
                 x_real = torch.Tensor(x_real[0]).to(device) # x_real[1] is the class, default:0
                 y_real = torch.Tensor(y_real[0]).to(device)
+
+                # deal with the fact some batches have different dimension
+                if x_real.shape != y_real.shape:
+                    continue
 
                 # Forward passes
                 x_fake_y = self.Gxy(x_real) # Produce fake Y using X
@@ -147,7 +162,16 @@ class cycleGAN(object):
                 x_cycle_loss = self.cycle_losscriterion(x_real, x_y_x) * args.lamda
                 y_cycle_loss = self.cycle_losscriterion(y_real, y_x_y) * args.lamda
 
-                generator_loss = x_GAN_loss + y_GAN_loss + x_cycle_loss + y_cycle_loss
+                if args.use_GAN_loss:
+                    generator_loss += x_GAN_loss + y_GAN_loss
+
+                if args.use_cycle_loss:
+                    if args.use_forward_loss:
+                        generator_loss += x_cycle_loss
+                    if args.use_backward_loss:
+                        generator_loss += y_cycle_loss
+                
+                # generator_loss = x_GAN_loss + y_GAN_loss + x_cycle_loss + y_cycle_loss
 
                 if args.use_id_loss:
                     generator_loss += y_id_loss + x_id_loss
@@ -155,55 +179,81 @@ class cycleGAN(object):
                 generator_loss.backward()
                 self.g_opt.step()
 
-                ## Then update discriminator
+                ''' 
+                Then update discriminator.
+                But only need to update discriminator if GAN loss is needed
+                '''
 
-                utils.net_require_grad([self.Dx, self.Dy], True)
-                self.d_opt.zero_grad()
+                if args.use_GAN_loss:
+                    utils.net_require_grad([self.Dx, self.Dy], True)
+                    self.d_opt.zero_grad()
 
-                x_fake = Variable(y_fake_x_history(y_fake_x)).to(device)
-                y_fake = Variable(x_fake_y_history(x_fake_y)).to(device)
+                    x_fake = Variable(y_fake_x_history(y_fake_x)).to(device)
+                    y_fake = Variable(x_fake_y_history(x_fake_y)).to(device)
 
-                dis_x_real = self.Dx(x_real)
-                dis_y_real = self.Dy(y_real)
-                dis_x_fake = self.Dx(x_fake)
-                dis_y_fake = self.Dy(y_fake)
+                    dis_x_real = self.Dx(x_real)
+                    dis_y_real = self.Dy(y_real)
+                    dis_x_fake = self.Dx(x_fake)
+                    dis_y_fake = self.Dy(y_fake)
+                    
+                    assert dis_x_fake.shape == label_fake.shape
+                    assert dis_y_fake.shape == label_fake.shape
 
-                # Discriminator loss
-                # This tells how good is Gyx (Compare Gyx(Y) with X)
-                assert dis_x_fake.shape == label_fake.shape
-                assert dis_y_fake.shape == label_fake.shape
-                x_dis_loss =  (self.GAN_losscriterion(dis_x_fake, label_fake) + self.GAN_losscriterion(dis_x_real, label_true))
-                # This tells how good is Gxy (Compare Gxy(X) with Y)
-                y_dis_loss =  (self.GAN_losscriterion(dis_y_fake, label_fake) + self.GAN_losscriterion(dis_y_real, label_true))
+                    # Discriminator loss
+                    # This tells how good is Gyx (Compare Gyx(Y) with X)
+                    x_dis_loss =  (self.GAN_losscriterion(dis_x_fake, label_fake) + self.GAN_losscriterion(dis_x_real, label_true))
+                    # This tells how good is Gxy (Compare Gxy(X) with Y)
+                    y_dis_loss =  (self.GAN_losscriterion(dis_y_fake, label_fake) + self.GAN_losscriterion(dis_y_real, label_true))
 
-                x_dis_loss.backward()
-                y_dis_loss.backward()
+                    x_dis_loss.backward()
+                    y_dis_loss.backward()
                 
-                self.d_opt.step()
+                    self.d_opt.step()
+
                 if (batch_idx+1)%100 == 0 or (batch_idx + 1) == min(len(x_loader), len(y_loader)):
-                    print("End of Epoch %d, Batch: %d/%d , Loss of Gen:%.2e , Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
+                    if args.use_GAN_loss==False:
+                        print("End of Epoch %d, Batch: %d/%d , Loss of Gen:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss))
+                    else:
+                        print("End of Epoch %d, Batch: %d/%d , Loss of Gen:%.2e , Loss of Dis:%.2e" % (epoch, batch_idx + 1, min(len(x_loader), len(y_loader)), generator_loss, x_dis_loss+y_dis_loss))
                 
-                epoch_GAN_Gxy += y_dis_loss.item() 
-                epoch_GAN_Gyx += x_dis_loss.item()
+                # Only need to record GAN loss and discriminator if GAN loss is needed
+                if args.use_GAN_loss:
+                    epoch_GAN_Gxy += y_dis_loss.item() 
+                    epoch_GAN_Gyx += x_dis_loss.item()
+                    epoch_Dis_loss += (x_dis_loss + y_dis_loss).item()
+
+                # we need to record cycle loss whatever for ablation test
                 epoch_Cycle_loss += (x_cycle_loss + y_cycle_loss).item()
+                epoch_Cycle_loss_foward += x_cycle_loss.item()
+                epoch_Cycle_loss_backward += y_cycle_loss.item()
+
+                # Generator has to be updated whatever
                 epoch_Gen_loss += generator_loss.item()
-                epoch_Dis_loss += (x_dis_loss + y_dis_loss).item()
+
                 if args.use_id_loss:
                     epoch_Identity_loss += (y_id_loss + x_id_loss).item()
 
             # Store losses after each epoch
-            GAN_loss_record_Gxy.append(epoch_GAN_Gxy)
-            GAN_loss_record_Gyx.append(epoch_GAN_Gyx)
-            Cycle_loss_record.append(epoch_Cycle_loss)
-            Gen_loss_record.append(epoch_Gen_loss)
-            Dis_loss_record.append(epoch_Dis_loss)
+            if args.use_GAN_loss:
+                GAN_loss_record_Gxy.append(epoch_GAN_Gxy)
+                GAN_loss_record_Gyx.append(epoch_GAN_Gyx)
+                Dis_loss_record.append(epoch_Dis_loss)
+                np.save('%s/%s_GAN_Gxy.npy' % (args.checkpoint_dir, args.data_name), GAN_loss_record_Gxy)
+                np.save('%s/%s_GAN_Gyx.npy' % (args.checkpoint_dir, args.data_name), GAN_loss_record_Gyx)
+                np.save('%s/%s_Dis_loss.npy' % (args.checkpoint_dir, args.data_name), Dis_loss_record)
 
-            # Save losses after each epoch
-            np.save('%s/%s_GAN_Gxy.npy' % (args.checkpoint_dir, args.data_name), GAN_loss_record_Gxy)
-            np.save('%s/%s_GAN_Gyx.npy' % (args.checkpoint_dir, args.data_name), GAN_loss_record_Gyx)
+            # need to store cycle loss whatever for ablation test
+            Cycle_loss_record.append(epoch_Cycle_loss)
+            Cycle_loss_record_foward.append(epoch_Cycle_loss_foward)
+            Cycle_loss_record_backward.append(epoch_Cycle_loss_backward)
             np.save('%s/%s_Cycle_loss.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record)
+            np.save('%s/%s_Cycle_loss_forward.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record_foward)
+            np.save('%s/%s_Cycle_loss_backward.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record_backward)
+
+            # Generator need to be updated whatever
+            Gen_loss_record.append(epoch_Gen_loss)
             np.save('%s/%s_Gen_loss.npy' % (args.checkpoint_dir, args.data_name), Gen_loss_record)
-            np.save('%s/%s_Dis_loss.npy' % (args.checkpoint_dir, args.data_name), Dis_loss_record)
+            
             if args.use_id_loss:
                 Identity_loss_record.append(epoch_Identity_loss)
                 np.save('%s/%s_Identity_loss.npy' % (args.checkpoint_dir, args.data_name), Identity_loss_record)
@@ -221,7 +271,7 @@ class cycleGAN(object):
             '''
             Save all the parameters every 50 epochs
             '''
-            if (epoch+1)%50 == 0:
+            if (epoch+1)%20 == 0:
                 torch.save(save_param_dict, '%s/%s.state' % (args.checkpoint_dir, str(epoch+1)))
                 if args.test_in_train:
                     test.start_test(args, epoch+1)

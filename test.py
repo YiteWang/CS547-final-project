@@ -14,7 +14,7 @@ from arch import *
 def start_test(args, epoch):
     print('Start to test.')
     transform = transforms.Compose(
-        [transforms.Resize((args.crop_H,args.crop_W)),
+        [transforms.Resize((args.crop_H*2,args.crop_W*2)), # resize to 512*512 for higher resolution
          transforms.ToTensor(),
          transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 

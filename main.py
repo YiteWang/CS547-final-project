@@ -36,11 +36,26 @@ def retrieve_args():
     parser.add_argument('--result_dir', type=str, default='./output_img/')
     parser.add_argument('--no-test_in_train', dest='test_in_train', action='store_false')
     parser.set_defaults(test_in_train=True)
+    parser.add_argument('--no-GAN_loss', dest='use_GAN_loss', action='store_false')
+    parser.set_defaults(use_GAN_loss=True)
+    parser.add_argument('--no-cycle_loss', dest='use_cycle_loss', action='store_false')
+    parser.set_defaults(use_cycle_loss=True)
+    parser.add_argument('--no-forward_loss', dest='use_forward_loss', action='store_false')
+    parser.set_defaults(use_forward_loss=True)
+    parser.add_argument('--no-backward_loss', dest='use_backward_loss', action='store_false')
+    parser.set_defaults(use_backward_loss=True)
     parser.add_argument('--test_batch_size', type=int, default=3)
     args = parser.parse_args()
     args.dataset_dir += args.data_name
     args.checkpoint_dir += args.data_name
     args.result_dir += args.data_name
+
+    # create directory
+    if not os.path.isdir(args.checkpoint_dir):
+        os.makedirs(args.checkpoint_dir)
+    if not os.path.isdir(args.result_dir):
+        os.makedirs(args.result_dir)
+
     return args
 
 
