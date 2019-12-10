@@ -6,10 +6,10 @@
 
 Put the dataset you want to folder `datasets`.
 
-Notice the structure of datasets is as follows:
+Notice the structure under datasets is as follows:
 
 ```
-datasets 
+vangogh2photo
 │
 └───TrainA
 │   │   
