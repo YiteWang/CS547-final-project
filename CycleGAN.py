@@ -162,6 +162,7 @@ class cycleGAN(object):
                 x_cycle_loss = self.cycle_losscriterion(x_real, x_y_x) * args.lamda
                 y_cycle_loss = self.cycle_losscriterion(y_real, y_x_y) * args.lamda
 
+                generator_loss = 0
                 if args.use_GAN_loss:
                     generator_loss += x_GAN_loss + y_GAN_loss
 
@@ -244,10 +245,10 @@ class cycleGAN(object):
 
             # need to store cycle loss whatever for ablation test
             Cycle_loss_record.append(epoch_Cycle_loss)
-            Cycle_loss_record_foward.append(epoch_Cycle_loss_foward)
+            Cycle_loss_record_forward.append(epoch_Cycle_loss_foward)
             Cycle_loss_record_backward.append(epoch_Cycle_loss_backward)
             np.save('%s/%s_Cycle_loss.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record)
-            np.save('%s/%s_Cycle_loss_forward.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record_foward)
+            np.save('%s/%s_Cycle_loss_forward.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record_forward)
             np.save('%s/%s_Cycle_loss_backward.npy' % (args.checkpoint_dir, args.data_name), Cycle_loss_record_backward)
 
             # Generator need to be updated whatever
