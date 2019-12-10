@@ -65,4 +65,5 @@ def net_initialization(layer):  # define the initialization function
         layer.weight.data.normal_(0.0, 0.02)
     elif classname.find('BatchNorm2d') != -1: 
         layer.weight.data.normal_(1.0, 0.02)
+    if hasattr(layer, 'bias') and layer.bias is not None:
         layer.bias.data.fill_(0)
