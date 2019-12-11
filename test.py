@@ -67,7 +67,7 @@ def start_test(args, epoch,test_all=False):
                 x_fake = Gyx(y_real)
                 x_recon = Gyx(y_fake)
                 y_recon = Gxy(x_fake)
-
+        test_imge_output = (torch.cat([x_real, y_fake, x_recon, y_real, x_fake, y_recon], dim=0).data + 1) / 2.0
         if not os.path.isdir(args.result_dir):
             os.makedirs(args.result_dir)
 
