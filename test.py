@@ -24,7 +24,7 @@ def start_test(args, epoch,test_all=False):
     dataset_dirs_X = os.path.join(args.dataset_dir, 'testA')
     dataset_dirs_Y = os.path.join(args.dataset_dir, 'testB')
     x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_X, transform=transform), 
-                                                        batch_size=args.test_batch_size, shuffle=True, num_workers=4)
+                                                        batch_size=args.test_batch_size, shuffle=shuffle_type, num_workers=4)
     y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_Y, transform=transform), 
                                                         batch_size=args.test_batch_size, shuffle=shuffle_type, num_workers=4)
 
