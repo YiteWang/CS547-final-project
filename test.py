@@ -46,6 +46,10 @@ def start_test(args, epoch,test_all=False):
 
     Gxy.eval()
     Gyx.eval()
+
+    cycle_loss_XYX = 0
+    cycle_loss_YXY = 0
+
     if test_all:
         for batch_idx, (x_real, y_real) in enumerate(zip(x_loader, y_loader)):
             x_real = torch.Tensor(x_real[0]).to(args.device)
@@ -64,9 +68,15 @@ def start_test(args, epoch,test_all=False):
             if not os.path.isdir(args.result_dir+'/YXY/'):
                 os.makedirs(args.result_dir+'/YXY/')
 
+            cycle_loss_XYX += nn.L1Loss()(x_real,x_recon)
+            cycle_loss_YXY += nn.L1Loss()(y_real,y_recon)
+
             torchvision.utils.save_image(XYX, args.result_dir+'/XYX/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
             torchvision.utils.save_image(YXY, args.result_dir+'/YXY/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
-    
+            
+        np.save('%s/test_cycle_loss_XYX.npy' % (args.args.checkpoint_dir), cycle_loss_XYX/(batch_idx+1))
+        np.save('%s/test_cycle_loss_YXY.npy' % (args.args.checkpoint_dir), cycle_loss_YXY/(batch_idx+1))
+
     else:
         x_real = torch.Tensor(iter(x_loader).next()[0]).to(args.device)
         y_real = torch.Tensor(iter(y_loader).next()[0]).to(args.device)
