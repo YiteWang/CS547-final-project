@@ -74,8 +74,10 @@ def start_test(args, epoch,test_all=False):
             torchvision.utils.save_image(XYX, args.result_dir+'/XYX/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
             torchvision.utils.save_image(YXY, args.result_dir+'/YXY/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
             
-        np.save('%s/test_cycle_loss_XYX.npy' % (args.args.checkpoint_dir), cycle_loss_XYX/(batch_idx+1))
-        np.save('%s/test_cycle_loss_YXY.npy' % (args.args.checkpoint_dir), cycle_loss_YXY/(batch_idx+1))
+        np.save('%s/test_cycle_loss_XYX.npy' % (args.checkpoint_dir), cycle_loss_XYX/(batch_idx+1))
+        print('Cycle loss for XYX is %f' % (cycle_loss_XYX/(batch_idx+1)))
+        np.save('%s/test_cycle_loss_YXY.npy' % (args.checkpoint_dir), cycle_loss_YXY/(batch_idx+1))
+        print('Cycle loss for YXY is %f' % (cycle_loss_YXY/(batch_idx+1)))
 
     else:
         x_real = torch.Tensor(iter(x_loader).next()[0]).to(args.device)
