@@ -20,13 +20,17 @@ def start_test(args, epoch,test_all=False):
 
     # if test all, then dont shuffle. 
     shuffle_type = not test_all
+    if test_all:
+        test_batch_size = 1
+    else:
+        test_batch_size = args.test_batch_size
 
     dataset_dirs_X = os.path.join(args.dataset_dir, 'testA')
     dataset_dirs_Y = os.path.join(args.dataset_dir, 'testB')
     x_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_X, transform=transform), 
-                                                        batch_size=args.test_batch_size, shuffle=shuffle_type, num_workers=4)
+                                                        batch_size=test_batch_size, shuffle=shuffle_type, num_workers=4)
     y_loader = torch.utils.data.DataLoader(datasets.ImageFolder(dataset_dirs_Y, transform=transform), 
-                                                        batch_size=args.test_batch_size, shuffle=shuffle_type, num_workers=4)
+                                                        batch_size=test_batch_size, shuffle=shuffle_type, num_workers=4)
 
     Gxy = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', device='cuda')
     Gyx = create_Generator(input_channel=3, output_channel=3, num_f=args.num_c_g, NN_name=args.gen_net, norm='instance', device='cuda')
@@ -52,12 +56,14 @@ def start_test(args, epoch,test_all=False):
                 x_recon = Gyx(y_fake)
                 y_recon = Gxy(x_fake)
 
-            test_imge_output = (torch.cat([x_real, y_fake, x_recon, y_real, x_fake, y_recon], dim=0).data + 1) / 2.0
+            XYX = (torch.cat([x_real, y_fake, x_recon], dim=0).data + 1) / 2.0
+            YXY = (torch.cat([y_real, x_fake, y_recon], dim=0).data + 1) / 2.0
 
             if not os.path.isdir(args.result_dir):
                 os.makedirs(args.result_dir)
 
-            torchvision.utils.save_image(test_imge_output, args.result_dir+'/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=args.test_batch_size)
+            torchvision.utils.save_image(XYX, args.result_dir+'/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
+            torchvision.utils.save_image(YXY, args.result_dir+'/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
     
     else:
         x_real = torch.Tensor(iter(x_loader).next()[0]).to(args.device)
@@ -71,7 +77,7 @@ def start_test(args, epoch,test_all=False):
         if not os.path.isdir(args.result_dir):
             os.makedirs(args.result_dir)
 
-        torchvision.utils.save_image(test_imge_output, args.result_dir+'/'+str(epoch)+'.jpg', nrow=args.test_batch_size)
+        torchvision.utils.save_image(test_imge_output, args.result_dir+'/'+str(epoch)+'.jpg', nrow=test_batch_size)
     
 
 
