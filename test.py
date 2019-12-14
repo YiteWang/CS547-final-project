@@ -68,8 +68,8 @@ def start_test(args, epoch,test_all=False):
             if not os.path.isdir(args.result_dir+'/YXY/'):
                 os.makedirs(args.result_dir+'/YXY/')
 
-            cycle_loss_XYX += nn.L1Loss()(x_real,x_recon)
-            cycle_loss_YXY += nn.L1Loss()(y_real,y_recon)
+            cycle_loss_XYX += nn.L1Loss()(x_real,x_recon).item()
+            cycle_loss_YXY += nn.L1Loss()(y_real,y_recon).item()
 
             torchvision.utils.save_image(XYX, args.result_dir+'/XYX/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
             torchvision.utils.save_image(YXY, args.result_dir+'/YXY/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
