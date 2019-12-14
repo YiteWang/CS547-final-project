@@ -1,4 +1,4 @@
-from arch import *
+ from arch import *
 import os
 import itertools
 import functools
@@ -55,7 +55,7 @@ class cycleGAN(object):
         if args.load_checkpoint == True:
             try:
                 temp = torch.load('%s/latest.state' % (args.checkpoint_dir))
-                self.start_epoch = temp['epoch']
+                self.start_epoch_num = temp['epoch']
                 self.Dx.load_state_dict(temp['Dx'])
                 self.Dy.load_state_dict(temp['Dy'])
                 self.Gxy.load_state_dict(temp['Gxy'])
