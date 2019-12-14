@@ -59,11 +59,13 @@ def start_test(args, epoch,test_all=False):
             XYX = (torch.cat([x_real, y_fake, x_recon], dim=0).data + 1) / 2.0
             YXY = (torch.cat([y_real, x_fake, y_recon], dim=0).data + 1) / 2.0
 
-            if not os.path.isdir(args.result_dir):
-                os.makedirs(args.result_dir)
+            if not os.path.isdir(args.result_dir+'/XYX/'):
+                os.makedirs(args.result_dir+'/XYX/')
+            if not os.path.isdir(args.result_dir+'/YXY/'):
+                os.makedirs(args.result_dir+'/YXY/')
 
-            torchvision.utils.save_image(XYX, args.result_dir+'/XYX_'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
-            torchvision.utils.save_image(YXY, args.result_dir+'/YXY_'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
+            torchvision.utils.save_image(XYX, args.result_dir+'/XYX/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
+            torchvision.utils.save_image(YXY, args.result_dir+'/YXY/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=3)
     
     else:
         x_real = torch.Tensor(iter(x_loader).next()[0]).to(args.device)
