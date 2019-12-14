@@ -62,8 +62,8 @@ def start_test(args, epoch,test_all=False):
             if not os.path.isdir(args.result_dir):
                 os.makedirs(args.result_dir)
 
-            torchvision.utils.save_image(XYX, args.result_dir+'/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
-            torchvision.utils.save_image(YXY, args.result_dir+'/'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
+            torchvision.utils.save_image(XYX, args.result_dir+'/XYX_'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
+            torchvision.utils.save_image(YXY, args.result_dir+'/YXY_'+str(epoch)+'_batch_'+str(batch_idx)+'.jpg', nrow=test_batch_size)
     
     else:
         x_real = torch.Tensor(iter(x_loader).next()[0]).to(args.device)
