@@ -17,7 +17,7 @@ The code consists of  5 python files, which are:
 
 ### How to use the Code
 
-Clone this repo to your machie.
+Clone this repo to your machine.
 
 Put the dataset you want to folder `datasets`.
 
