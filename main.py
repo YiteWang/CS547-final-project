@@ -11,7 +11,7 @@ def retrieve_args():
     parser.add_argument('--epochs', type=int, default=200)
     parser.add_argument('--decay_epoch', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=1)
-    parser.add_argument('--lr', type=float, default=.0002, help='learning rate')
+    parser.add_argument('--lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--use_CPU', dest='use_GPU', action='store_false', help='change default device from GPU to CPU')
     parser.set_defaults(use_GPU=True)
     parser.add_argument('--use_id_loss', type=bool, default=False, help='if add identity loss')

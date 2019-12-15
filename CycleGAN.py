@@ -1,4 +1,4 @@
- from arch import *
+from arch import *
 import os
 import itertools
 import functools
