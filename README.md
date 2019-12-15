@@ -1,6 +1,6 @@
 # CS547 final project
 
-* Team members: Yite Wang, Yuchen He, Jing Wu, Randy Chase
+* Team members: Yite Wang (yitew2) , Jing Wu(jingwu6) , Yuchen He(he44), Randy Chase (randyjc2)
 
 ### Code structure
 
