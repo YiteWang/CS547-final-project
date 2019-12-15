@@ -1,3 +1,8 @@
+"""
+CS547 Deep learning final project
+Team Members: Yite Wang (yitew2) , Jing Wu(jingwu6) , Yuchen He(he44), Randy Chase (randyjc2)
+Contact: yitew2@illinois.edu
+"""
 import os
 import arch
 import CycleGAN

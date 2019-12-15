@@ -1,3 +1,8 @@
+"""
+CS547 Deep learning final project
+Team Members: Yite Wang (yitew2) , Jing Wu(jingwu6) , Yuchen He(he44), Randy Chase (randyjc2)
+Contact: yitew2@illinois.edu
+"""
 import os
 from argparse import ArgumentParser
 from utils import *
@@ -8,15 +13,15 @@ import test
 
 def retrieve_args():
     parser = ArgumentParser(description='CS547 Final Project: cycleGAN')
-    parser.add_argument('--epochs', type=int, default=200)
-    parser.add_argument('--decay_epoch', type=int, default=100)
+    parser.add_argument('--epochs', type=int, default=200, help='Number of epochs')
+    parser.add_argument('--decay_epoch', type=int, default=100, help='Epoch that learning rate starts to decay linearly')
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--use_CPU', dest='use_GPU', action='store_false', help='change default device from GPU to CPU')
     parser.set_defaults(use_GPU=True)
     parser.add_argument('--use_id_loss', type=bool, default=False, help='if add identity loss')
     parser.add_argument('--lambda_id_loss', type=float, default=5, help='lambda used for identity loss')
-    parser.add_argument('--lamda', type=int, default=10)
+    parser.add_argument('--lamda', type=int, default=10, help='Coefficient of cycle loss')
     parser.add_argument('--load_H', type=int, default=286)
     parser.add_argument('--load_W', type=int, default=286)
     parser.add_argument('--crop_H', type=int, default=256)
@@ -24,9 +29,9 @@ def retrieve_args():
     parser.add_argument('--training', type=bool, default=False)
     parser.add_argument('--testing', type=bool, default=False)
     parser.add_argument('--data_name', type=str, default='apple2orange', help='name of the datasets')
-    parser.add_argument('--dataset_dir', type=str, default='./datasets/')
-    parser.add_argument('--load_checkpoint', type=bool, default=False)
-    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/')
+    parser.add_argument('--dataset_dir', type=str, default='./datasets/', help='directory of datasets')
+    parser.add_argument('--load_checkpoint', type=bool, default=False, help='If restart using checkpoints')
+    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/', help='directory of saving checkpoints')
     parser.add_argument('--num_c_g', type=int, default=64, help='# of channels in generator')
     parser.add_argument('--num_c_d', type=int, default=64, help='# of channels in discriminator')
     parser.add_argument('--gen_net', type=str, default='resnet9', help='type of generator')
