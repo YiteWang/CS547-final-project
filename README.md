@@ -19,9 +19,9 @@ The code consists of  5 python files, which are:
 
 Clone this repo to your machine.
 
-Put the dataset you want to folder `datasets`.
+Create folder `datasets` and put the dataset you want into the folder `datasets`.
 
-Notice the structure under datasets is as follows:
+Notice the structure under `datasets` is as follows:
 
 ```
 vangogh2photo
